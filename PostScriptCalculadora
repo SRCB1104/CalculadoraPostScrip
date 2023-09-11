@@ -14,7 +14,7 @@ public class PostScript {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println("Ingrese una expresión PostScript (o 'quitqui' para salir): ");
+            System.out.println("Ingrese una expresión PostScript (o 'quit' para salir): ");
             String input = scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("quit")) {
