@@ -1,0 +1,148 @@
+import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
+public class PostScript {
+
+    private static final Logger LOGGER = Logger.getLogger(PostScript.class.getName());
+    private static Stack<Double> stack = new Stack<>();
+
+    public static void main(String[] args) {
+        Logger();
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Ingrese una expresión PostScript (o 'quitqui' para salir): ");
+            String input = scanner.nextLine().trim();
+
+            if (input.equalsIgnoreCase("quit")) {
+                break;
+            }
+
+            try {
+                evaluarPostScript(input);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Error en la expresión: " + e.getMessage());
+                System.out.println("Error: Expresión no válida");
+            }
+        }
+    }
+
+    private static void Logger() {
+        try {
+            FileHandler fileHandler = new FileHandler("bitacora.log");
+            SimpleFormatter formatter = new SimpleFormatter();
+            fileHandler.setFormatter(formatter);
+            LOGGER.addHandler(fileHandler);
+            LOGGER.setLevel(Level.SEVERE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void evaluarPostScript(String expression) {
+        String[] tokens = expression.split("\\s+");
+
+        for (String token : tokens) {
+            if (Numerico(token)) {
+                stack.push(Double.parseDouble(token));
+            } else if (OperadoresPostscript(token)) {
+                if (stack.size() < 2) {
+                    throw new IllegalArgumentException("Faltan operandos para el operador " + token);
+                }
+                AplicarOperadores(token);
+            } else {
+                throw new IllegalArgumentException("Operador no reconocido: " + token);
+            }
+        }
+
+        if (stack.size() == 1) {
+            System.out.println("Resultado: " + stack.peek());
+        } else {
+            LOGGER.log(Level.SEVERE, "Error en la expresión: '" + expression + "' - Número incorrecto de operandos.");
+            System.out.println("Error: Expresión no válida");
+        }
+    }
+
+    private static boolean Numerico(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static boolean OperadoresPostscript(String str) {
+        String[] validOperators = {"add", "sub", "mul", "div", "eq", "ne", "gt", "lt", "ge", "le"}; // Lista de operadores
+
+        for (String operator : validOperators) {
+            if (operator.equals(str)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void AplicarOperadores(String operator) {
+        switch (operator) {
+            case "add":
+                double operand2 = stack.pop();
+                double operand1 = stack.pop();
+                stack.push(operand1 + operand2);
+                break;
+            case "sub":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 - operand2);
+                break;
+            case "mul":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 * operand2);
+                break;
+            case "div":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                if (operand2 == 0) {
+                    throw new ArithmeticException("División por cero");
+                }
+                stack.push(operand1 / operand2);
+                break;
+            case "eq":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 == operand2 ? 1.0 : 0.0);
+                break;
+            case "ne":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 != operand2 ? 1.0 : 0.0);
+                break;
+            case "gt":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 > operand2 ? 1.0 : 0.0);
+                break;
+            case "lt":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 < operand2 ? 1.0 : 0.0);
+                break;
+            case "ge":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 >= operand2 ? 1.0 : 0.0);
+                break;
+            case "le":
+                operand2 = stack.pop();
+                operand1 = stack.pop();
+                stack.push(operand1 <= operand2 ? 1.0 : 0.0);
+                break;
+            default:
+                throw new IllegalArgumentException("Operador no válido: " + operator);
+        }
+    }
+} // end main
